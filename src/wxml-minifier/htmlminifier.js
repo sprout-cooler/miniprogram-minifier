@@ -1,11 +1,11 @@
 'use strict';
 
-var CleanCSS = require('clean-css');
+// var CleanCSS = require('clean-css');
 var decode = require('he').decode;
 var HTMLParser = require('./htmlparser').HTMLParser;
-var RelateUrl = require('relateurl');
+// var RelateUrl = require('relateurl');
 var TokenChain = require('./tokenchain');
-var UglifyJS = require('uglify-js');
+// var UglifyJS = require('uglify-js');
 var utils = require('./utils');
 
 function trimWhitespace(str) {
@@ -64,11 +64,12 @@ function collapseWhitespace(str, options, trimLeft, trimRight, collapseAll) {
 
 var createMapFromString = utils.createMapFromString;
 // non-empty tags that will maintain whitespace around them
-var inlineTags = createMapFromString('a,abbr,acronym,b,bdi,bdo,big,button,cite,code,del,dfn,em,font,i,ins,kbd,label,mark,math,nobr,object,q,rp,rt,rtc,ruby,s,samp,select,small,span,strike,strong,sub,sup,svg,textarea,time,tt,u,var');
+// var inlineTags = createMapFromString('a,abbr,acronym,b,bdi,bdo,big,button,cite,code,del,dfn,em,font,i,ins,kbd,label,mark,math,nobr,object,q,rp,rt,rtc,ruby,s,samp,select,small,span,strike,strong,sub,sup,svg,textarea,time,tt,u,var');
+var inlineTags = createMapFromString('icon,text,rich-text');
 // non-empty tags that will maintain whitespace within them
-var inlineTextTags = createMapFromString('a,abbr,acronym,b,big,del,em,font,i,ins,kbd,mark,nobr,rp,s,samp,small,span,strike,strong,sub,sup,time,tt,u,var');
+var inlineTextTags = createMapFromString('text,rich-text');
 // self-closing tags that will maintain whitespace around them
-var selfClosingInlineTags = createMapFromString('comment,img,input,wbr');
+var selfClosingInlineTags = createMapFromString('comment');
 
 function collapseWhitespaceSmart(str, prevTag, nextTag, options) {
   var trimLeft = prevTag && !selfClosingInlineTags(prevTag);
@@ -255,11 +256,11 @@ function isSrcset(attrName, tag) {
 }
 
 function cleanAttributeValue(tag, attrName, attrValue, options, attrs) {
-  if (isEventAttribute(attrName, options)) {
-    attrValue = trimWhitespace(attrValue).replace(/^javascript:\s*/i, '');
-    return options.minifyJS(attrValue, true);
-  }
-  else if (attrName === 'class') {
+  // if (isEventAttribute(attrName, options)) {
+  //   attrValue = trimWhitespace(attrValue).replace(/^javascript:\s*/i, '');
+  //   return options.minifyJS(attrValue, true);
+  // } else 
+  if (attrName === 'class') {
     attrValue = trimWhitespace(attrValue);
     if (options.sortClassName) {
       attrValue = options.sortClassName(attrValue);
@@ -269,40 +270,40 @@ function cleanAttributeValue(tag, attrName, attrValue, options, attrs) {
     }
     return attrValue;
   }
-  else if (isUriTypeAttribute(attrName, tag)) {
-    attrValue = trimWhitespace(attrValue);
-    return isLinkType(tag, attrs, 'canonical') ? attrValue : options.minifyURLs(attrValue);
-  }
+  // else if (isUriTypeAttribute(attrName, tag)) {
+  //   attrValue = trimWhitespace(attrValue);
+  //   return isLinkType(tag, attrs, 'canonical') ? attrValue : options.minifyURLs(attrValue);
+  // }
   else if (isNumberTypeAttribute(attrName, tag)) {
     return trimWhitespace(attrValue);
   }
-  else if (attrName === 'style') {
-    attrValue = trimWhitespace(attrValue);
-    if (attrValue) {
-      if (/;$/.test(attrValue) && !/&#?[0-9a-zA-Z]+;$/.test(attrValue)) {
-        attrValue = attrValue.replace(/\s*;$/, ';');
-      }
-      attrValue = options.minifyCSS(attrValue, 'inline');
-    }
-    return attrValue;
-  }
-  else if (isSrcset(attrName, tag)) {
-    // https://html.spec.whatwg.org/multipage/embedded-content.html#attr-img-srcset
-    attrValue = trimWhitespace(attrValue).split(/\s+,\s*|\s*,\s+/).map(function(candidate) {
-      var url = candidate;
-      var descriptor = '';
-      var match = candidate.match(/\s+([1-9][0-9]*w|[0-9]+(?:\.[0-9]+)?x)$/);
-      if (match) {
-        url = url.slice(0, -match[0].length);
-        var num = +match[1].slice(0, -1);
-        var suffix = match[1].slice(-1);
-        if (num !== 1 || suffix !== 'x') {
-          descriptor = ' ' + num + suffix;
-        }
-      }
-      return options.minifyURLs(url) + descriptor;
-    }).join(', ');
-  }
+  // else if (attrName === 'style') {
+  //   attrValue = trimWhitespace(attrValue);
+  //   if (attrValue) {
+  //     if (/;$/.test(attrValue) && !/&#?[0-9a-zA-Z]+;$/.test(attrValue)) {
+  //       attrValue = attrValue.replace(/\s*;$/, ';');
+  //     }
+  //     attrValue = options.minifyCSS(attrValue, 'inline');
+  //   }
+  //   return attrValue;
+  // }
+  // else if (isSrcset(attrName, tag)) {
+  //   // https://html.spec.whatwg.org/multipage/embedded-content.html#attr-img-srcset
+  //   attrValue = trimWhitespace(attrValue).split(/\s+,\s*|\s*,\s+/).map(function(candidate) {
+  //     var url = candidate;
+  //     var descriptor = '';
+  //     var match = candidate.match(/\s+([1-9][0-9]*w|[0-9]+(?:\.[0-9]+)?x)$/);
+  //     if (match) {
+  //       url = url.slice(0, -match[0].length);
+  //       var num = +match[1].slice(0, -1);
+  //       var suffix = match[1].slice(-1);
+  //       if (num !== 1 || suffix !== 'x') {
+  //         descriptor = ' ' + num + suffix;
+  //       }
+  //     }
+  //     return options.minifyURLs(url) + descriptor;
+  //   }).join(', ');
+  // }
   else if (isMetaViewport(tag, attrs) && attrName === 'content') {
     attrValue = attrValue.replace(/\s+/g, '').replace(/[0-9]+\.[0-9]+/g, function(numString) {
       // "0.90000" -> "0.9"
@@ -317,10 +318,10 @@ function cleanAttributeValue(tag, attrName, attrValue, options, attrs) {
   else if (tag === 'script' && attrName === 'type') {
     attrValue = trimWhitespace(attrValue.replace(/\s*;\s*/g, ';'));
   }
-  else if (isMediaQuery(tag, attrs, attrName)) {
-    attrValue = trimWhitespace(attrValue);
-    return options.minifyCSS(attrValue, 'media');
-  }
+  // else if (isMediaQuery(tag, attrs, attrName)) {
+  //   attrValue = trimWhitespace(attrValue);
+  //   return options.minifyCSS(attrValue, 'media');
+  // }
   return attrValue;
 }
 
@@ -341,29 +342,29 @@ function ignoreCSS(id) {
 
 // Wrap CSS declarations for CleanCSS > 3.x
 // See https://github.com/jakubpawlowicz/clean-css/issues/418
-function wrapCSS(text, type) {
-  switch (type) {
-    case 'inline':
-      return '*{' + text + '}';
-    case 'media':
-      return '@media ' + text + '{a{top:0}}';
-    default:
-      return text;
-  }
-}
+// function wrapCSS(text, type) {
+//   switch (type) {
+//     case 'inline':
+//       return '*{' + text + '}';
+//     case 'media':
+//       return '@media ' + text + '{a{top:0}}';
+//     default:
+//       return text;
+//   }
+// }
 
-function unwrapCSS(text, type) {
-  var matches;
-  switch (type) {
-    case 'inline':
-      matches = text.match(/^\*\{([\s\S]*)\}$/);
-      break;
-    case 'media':
-      matches = text.match(/^@media ([\s\S]*?)\s*{[\s\S]*}$/);
-      break;
-  }
-  return matches ? matches[1] : text;
-}
+// function unwrapCSS(text, type) {
+//   var matches;
+//   switch (type) {
+//     case 'inline':
+//       matches = text.match(/^\*\{([\s\S]*)\}$/);
+//       break;
+//     case 'media':
+//       matches = text.match(/^@media ([\s\S]*?)\s*{[\s\S]*}$/);
+//       break;
+//   }
+//   return matches ? matches[1] : text;
+// }
 
 function cleanConditionalComment(comment, options) {
   return options.processConditionalComments ? comment.replace(/^(\[if\s[^\]]+]>)([\s\S]*?)(<!\[endif])$/, function(match, prefix, text, suffix) {
@@ -637,9 +638,9 @@ function processOptions(values) {
     ],
     includeAutoGeneratedTags: true,
     log: identity,
-    minifyCSS: identity,
-    minifyJS: identity,
-    minifyURLs: identity
+    // minifyCSS: identity,
+    // minifyJS: identity,
+    // minifyURLs: identity
   };
   Object.keys(values).forEach(function(key) {
     var value = values[key];
@@ -653,65 +654,65 @@ function processOptions(values) {
         options.log = value;
       }
     }
-    else if (key === 'minifyCSS' && typeof value !== 'function') {
-      if (!value) {
-        return;
-      }
-      if (typeof value !== 'object') {
-        value = {};
-      }
-      options.minifyCSS = function(text, type) {
-        text = text.replace(/(url\s*\(\s*)("|'|)(.*?)\2(\s*\))/ig, function(match, prefix, quote, url, suffix) {
-          return prefix + quote + options.minifyURLs(url) + quote + suffix;
-        });
-        var cleanCssOutput = new CleanCSS(value).minify(wrapCSS(text, type));
-        if (cleanCssOutput.errors.length > 0) {
-          cleanCssOutput.errors.forEach(options.log);
-          return text;
-        }
-        return unwrapCSS(cleanCssOutput.styles, type);
-      };
-    }
-    else if (key === 'minifyJS' && typeof value !== 'function') {
-      if (!value) {
-        return;
-      }
-      if (typeof value !== 'object') {
-        value = {};
-      }
-      (value.parse || (value.parse = {})).bare_returns = false;
-      options.minifyJS = function(text, inline) {
-        var start = text.match(/^\s*<!--.*/);
-        var code = start ? text.slice(start[0].length).replace(/\n\s*-->\s*$/, '') : text;
-        value.parse.bare_returns = inline;
-        var result = UglifyJS.minify(code, value);
-        if (result.error) {
-          options.log(result.error);
-          return text;
-        }
-        return result.code.replace(/;$/, '');
-      };
-    }
-    else if (key === 'minifyURLs' && typeof value !== 'function') {
-      if (!value) {
-        return;
-      }
-      if (typeof value === 'string') {
-        value = { site: value };
-      }
-      else if (typeof value !== 'object') {
-        value = {};
-      }
-      options.minifyURLs = function(text) {
-        try {
-          return RelateUrl.relate(text, value);
-        }
-        catch (err) {
-          options.log(err);
-          return text;
-        }
-      };
-    }
+    // else if (key === 'minifyCSS' && typeof value !== 'function') {
+    //   if (!value) {
+    //     return;
+    //   }
+    //   if (typeof value !== 'object') {
+    //     value = {};
+    //   }
+    //   options.minifyCSS = function(text, type) {
+    //     text = text.replace(/(url\s*\(\s*)("|'|)(.*?)\2(\s*\))/ig, function(match, prefix, quote, url, suffix) {
+    //       return prefix + quote + options.minifyURLs(url) + quote + suffix;
+    //     });
+    //     var cleanCssOutput = new CleanCSS(value).minify(wrapCSS(text, type));
+    //     if (cleanCssOutput.errors.length > 0) {
+    //       cleanCssOutput.errors.forEach(options.log);
+    //       return text;
+    //     }
+    //     return unwrapCSS(cleanCssOutput.styles, type);
+    //   };
+    // }
+    // else if (key === 'minifyJS' && typeof value !== 'function') {
+    //   if (!value) {
+    //     return;
+    //   }
+    //   if (typeof value !== 'object') {
+    //     value = {};
+    //   }
+    //   (value.parse || (value.parse = {})).bare_returns = false;
+    //   options.minifyJS = function(text, inline) {
+    //     var start = text.match(/^\s*<!--.*/);
+    //     var code = start ? text.slice(start[0].length).replace(/\n\s*-->\s*$/, '') : text;
+    //     value.parse.bare_returns = inline;
+    //     var result = UglifyJS.minify(code, value);
+    //     if (result.error) {
+    //       options.log(result.error);
+    //       return text;
+    //     }
+    //     return result.code.replace(/;$/, '');
+    //   };
+    // }
+    // else if (key === 'minifyURLs' && typeof value !== 'function') {
+    //   if (!value) {
+    //     return;
+    //   }
+    //   if (typeof value === 'string') {
+    //     value = { site: value };
+    //   }
+    //   else if (typeof value !== 'object') {
+    //     value = {};
+    //   }
+    //   options.minifyURLs = function(text) {
+    //     try {
+    //       return RelateUrl.relate(text, value);
+    //     }
+    //     catch (err) {
+    //       options.log(err);
+    //       return text;
+    //     }
+    //   };
+    // }
     else {
       options[key] = value;
     }
@@ -865,40 +866,40 @@ function minify(value, options, partialMarkup) {
       if (!uidAttr) {
         uidAttr = uniqueId(value);
         uidPattern = new RegExp('(\\s*)' + uidAttr + '([0-9]+)(\\s*)', 'g');
-        if (options.minifyCSS) {
-          options.minifyCSS = (function(fn) {
-            return function(text, type) {
-              text = text.replace(uidPattern, function(match, prefix, index) {
-                var chunks = ignoredCustomMarkupChunks[+index];
-                return chunks[1] + uidAttr + index + chunks[2];
-              });
-              var ids = [];
-              new CleanCSS().minify(wrapCSS(text, type)).warnings.forEach(function(warning) {
-                var match = uidPattern.exec(warning);
-                if (match) {
-                  var id = uidAttr + match[2];
-                  text = text.replace(id, ignoreCSS(id));
-                  ids.push(id);
-                }
-              });
-              text = fn(text, type);
-              ids.forEach(function(id) {
-                text = text.replace(ignoreCSS(id), id);
-              });
-              return text;
-            };
-          })(options.minifyCSS);
-        }
-        if (options.minifyJS) {
-          options.minifyJS = (function(fn) {
-            return function(text, type) {
-              return fn(text.replace(uidPattern, function(match, prefix, index) {
-                var chunks = ignoredCustomMarkupChunks[+index];
-                return chunks[1] + uidAttr + index + chunks[2];
-              }), type);
-            };
-          })(options.minifyJS);
-        }
+        // if (options.minifyCSS) {
+        //   options.minifyCSS = (function(fn) {
+        //     return function(text, type) {
+        //       text = text.replace(uidPattern, function(match, prefix, index) {
+        //         var chunks = ignoredCustomMarkupChunks[+index];
+        //         return chunks[1] + uidAttr + index + chunks[2];
+        //       });
+        //       var ids = [];
+        //       new CleanCSS().minify(wrapCSS(text, type)).warnings.forEach(function(warning) {
+        //         var match = uidPattern.exec(warning);
+        //         if (match) {
+        //           var id = uidAttr + match[2];
+        //           text = text.replace(id, ignoreCSS(id));
+        //           ids.push(id);
+        //         }
+        //       });
+        //       text = fn(text, type);
+        //       ids.forEach(function(id) {
+        //         text = text.replace(ignoreCSS(id), id);
+        //       });
+        //       return text;
+        //     };
+        //   })(options.minifyCSS);
+        // }
+        // if (options.minifyJS) {
+        //   options.minifyJS = (function(fn) {
+        //     return function(text, type) {
+        //       return fn(text.replace(uidPattern, function(match, prefix, index) {
+        //         var chunks = ignoredCustomMarkupChunks[+index];
+        //         return chunks[1] + uidAttr + index + chunks[2];
+        //       }), type);
+        //     };
+        //   })(options.minifyJS);
+        // }
       }
       var token = uidAttr + ignoredCustomMarkupChunks.length;
       ignoredCustomMarkupChunks.push(/^(\s*)[\s\S]*?(\s*)$/.exec(match));
@@ -1173,12 +1174,12 @@ function minify(value, options, partialMarkup) {
       if (options.processScripts && specialContentTags(currentTag)) {
         text = processScript(text, options, currentAttrs);
       }
-      if (isExecutableScript(currentTag, currentAttrs)) {
-        text = options.minifyJS(text);
-      }
-      if (isStyleSheet(currentTag, currentAttrs)) {
-        text = options.minifyCSS(text);
-      }
+      // if (isExecutableScript(currentTag, currentAttrs)) {
+      //   text = options.minifyJS(text);
+      // }
+      // if (isStyleSheet(currentTag, currentAttrs)) {
+      //   text = options.minifyCSS(text);
+      // }
       if (options.removeOptionalTags && text) {
         // <html> may be omitted if first thing inside is not comment
         // <body> may be omitted if first thing inside is not space, comment, <meta>, <link>, <script>, <style> or <template>
