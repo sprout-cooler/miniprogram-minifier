@@ -7,8 +7,6 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "gulp-util": "^3.0.8",
-    "he": "^1.2.0",
-    "through2": "^3.0.0"
+    "he": "^1.2.0"
   }
 }
